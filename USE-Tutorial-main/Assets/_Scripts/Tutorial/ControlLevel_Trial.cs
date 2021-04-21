@@ -28,7 +28,7 @@ public class ControlLevel_Trial : ControlLevel
         AddActiveStates(new List<State> { stimOn, collectResponse, feedback, iti });
 
         //Define stimOn State
-        stimOn.AddStateIntialiaztionMethod(() =>
+        stimOn.AddStateInitializationMethod(() =>
         {
             trialStim.SetActive(true);
             response = -1;
@@ -38,7 +38,7 @@ public class ControlLevel_Trial : ControlLevel
 
         //Define collectResponse State
         collectResponse.AddStateInitializationMethod(() => goCue.SetActive(true));
-        collectResponse.AddStateUpdatemethod(() =>
+        collectResponse.AddStateUpdateMethod(() =>
         {
             Ray ray = Camera.main.ScreenPointToRay(InputBroker.mousePosition);
             RaycastHit hit;
@@ -55,12 +55,41 @@ public class ControlLevel_Trial : ControlLevel
             }
         });
 
-        collecetResponse.AddTimer(5f, feedback);
+        collectResponse.AddTimer(5f, feedback);
         collectResponse.SpecifyStateTermination(() => response > -1, feedback);
         collectResponse.AddStateDefaultTerminationMethod(() => goCue.SetActive(false));
 
-    }
+        //Define Feedback State
+        feedback.AddStateInitializationMethod(() =>
+        {
+            fb.SetActive(true);
+            Color col = Color.white;
+            switch (response)
+            {
+                case -1:
+                    col = Color.grey;
+                    break;
+                case 0:
+                    col = Color.red;
+                    break;
+                case 2:
+                    col = Color.green;
+                    break;
+                case 0:
+                    col = Color.black;
+                    break;
+            }
+            fb.GetComponent<RawImage>().color = col;
+        });
+        feedback.AddTimer(1f, iti, () => fb.SetActive(false));
 
+        //Define iti state
+        iti.AddStateInitializationMethod(() => trialStim.SetActive(false));
+        iti.AddTimer(2f, stimOn);
+
+        AddControlLevelTerminationSpecification(() => trialCount > 5);
+
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -73,6 +102,6 @@ public class ControlLevel_Trial : ControlLevel
 
     }
 
- 
+
 
 }
