@@ -28,24 +28,24 @@ public class ControlLevel_Trial : ControlLevel
         AddActiveStates(new List<State> { stimOn, collectResponse, feedback, iti });
 
         //Define stimOn State
-        stimOn.AddStateInitializationMethod(() =>
+        stimOn.AddInitializationMethod(() =>
         {
             trialStim.SetActive(true);
             response = -1;
             Debug.Log("Starting trial " + trialCount);
         });
-        stim0n.AddTimer(1f, collectResponse);
+        stimOn.AddTimer(1f, collectResponse);
 
         //Define collectResponse State
-        collectResponse.AddStateInitializationMethod(() => goCue.SetActive(true));
-        collectResponse.AddStateUpdateMethod(() =>
+        collectResponse.AddInitializationMethod(() => goCue.SetActive(true));
+        collectResponse.AddUpdateMethod(() =>
         {
             Ray ray = Camera.main.ScreenPointToRay(InputBroker.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
                 if (hit.collider.gameObject == trialStim)
-                    reponse = 1;
+                    response = 1;
                 else
                     response = 0;
             }
@@ -56,11 +56,11 @@ public class ControlLevel_Trial : ControlLevel
         });
 
         collectResponse.AddTimer(5f, feedback);
-        collectResponse.SpecifyStateTermination(() => response > -1, feedback);
-        collectResponse.AddStateDefaultTerminationMethod(() => goCue.SetActive(false));
+        collectResponse.SpecifyTermination(() => response > -1, feedback);
+        collectResponse.AddDefaultTerminationMethod(() => goCue.SetActive(false));
 
         //Define Feedback State
-        feedback.AddStateInitializationMethod(() =>
+        feedback.AddInitializationMethod(() =>
         {
             fb.SetActive(true);
             Color col = Color.white;
@@ -72,10 +72,10 @@ public class ControlLevel_Trial : ControlLevel
                 case 0:
                     col = Color.red;
                     break;
-                case 2:
+                case 1:
                     col = Color.green;
                     break;
-                case 0:
+                case 2:
                     col = Color.black;
                     break;
             }
@@ -84,10 +84,10 @@ public class ControlLevel_Trial : ControlLevel
         feedback.AddTimer(1f, iti, () => fb.SetActive(false));
 
         //Define iti state
-        iti.AddStateInitializationMethod(() => trialStim.SetActive(false));
+        iti.AddInitializationMethod(() => trialStim.SetActive(false));
         iti.AddTimer(2f, stimOn);
 
-        AddControlLevelTerminationSpecification(() => trialCount > 5);
+        AddTerminationSpecification(() => trialCount > 5);
 
     }
     // Start is called before the first frame update
